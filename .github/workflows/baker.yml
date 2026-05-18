@@ -1,8 +1,6 @@
 name: Violet Baker Factory
 
 on:
-  schedule:
-    - cron: '*/10 * * * *'
   workflow_dispatch:
 
 jobs:
