@@ -5,7 +5,7 @@ from googleapiclient.http import MediaIoBaseDownload
 import io
 
 
-#  1. 환경 설정 
+# 1. 환경 설정 
 
 GITHUB_USER = "lomo80"
 MASTER_FOLDER_ID = os.environ.get('MASTER_FOLDER_ID')
@@ -14,7 +14,7 @@ CHUNK_FOLDER_ID = os.environ.get('CHUNK_FOLDER_ID')
 print(" [GitHub Worker] 드라이브 순찰을 시작합니다...")
 
 
-# 🔑 2. 구글 드라이브 인증 및 '작업 지시서' 찾기
+# 2. 구글 드라이브 인증 및 '작업 지시서' 찾기
 
 # GitHub Secrets에 등록해둔 GDRIVE_TOKEN을 꺼내서 인증서로 변환합니다.
 creds_dict = json.loads(os.environ.get('GDRIVE_TOKEN'))
@@ -25,18 +25,18 @@ drive = build('drive', 'v3', credentials=creds)
 results = drive.files().list(q=f"'{MASTER_FOLDER_ID}' in parents and name contains 'release_info_' and trashed=false").execute()
 info_files = results.get('files', [])
 
-# 🛑 [조기 퇴근] 지시서가 없으면 아직 서버가 빵을 안 구웠다는 뜻이니 바로 잠듭니다.
+# 지시서가 없으면 아직 서버가 빵을 안 구웠다는 뜻이니 바로 잠듭니다.
 if not info_files:
-    print("📭 지시서(release_info)가 없습니다. 드라이브에 새 파일이 없으므로 퇴근합니다!")
+    print(" 지시서(release_info)가 없습니다. 드라이브에 새 파일이 없으므로 퇴근합니다!")
     sys.exit(0)
 
 # 지시서가 있다면, 파일 이름에서 '시간표(Timestamp)' 숫자만 쏙 뽑아냅니다.
 info_file = info_files[0]
 timestamp = info_file['name'].replace('release_info_', '').replace('.txt', '')
-print(f"🎯 [작업 발견] 타임스탬프: {timestamp} 포장 작업을 시작합니다!")
+print(f"[작업 발견] 타임스탬프: {timestamp} 포장 작업을 시작합니다!")
 
 
-# 📥 3. 구글 드라이브에서 파일 다운로드
+# 3. 구글 드라이브에서 파일 다운로드
 
 # 파일을 다운로드할 임시 방(폴더)을 두 개 만듭니다. (청크와 마스터의 data.db 이름이 겹치기 때문)
 os.makedirs('dl_chunk', exist_ok=True)
@@ -47,7 +47,7 @@ def download_folder_files(folder_id, download_path):
     # 해당 폴더 안의 모든 파일을 가져옵니다.
     files = drive.files().list(q=f"'{folder_id}' in parents and trashed=false").execute().get('files', [])
     for f in files:
-        print(f"⬇️ 다운로드 중: {f['name']}")
+        print(f" 다운로드 중: {f['name']}")
         request = drive.files().get_media(fileId=f['id'])
         with io.FileIO(os.path.join(download_path, f['name']), 'wb') as fh:
             downloader = MediaIoBaseDownload(fh, request)
@@ -56,22 +56,22 @@ def download_folder_files(folder_id, download_path):
                 _, done = downloader.next_chunk()
         downloaded_drive_ids.append(f['id']) # 지울 목록에 추가
 
-print("\n📦 [청크 파일 다운로드]")
+print("\n [청크 파일 다운로드]")
 download_folder_files(CHUNK_FOLDER_ID, 'dl_chunk')
-print("\n📦 [마스터 파일 다운로드]")
+print("\n [마스터 파일 다운로드]")
 download_folder_files(MASTER_FOLDER_ID, 'dl_master')
 
 
-# 🗜️ 4. 마스터 데이터 7z 압축 (GitHub의 무료 CPU를 100% 활용!)
+# 4. 마스터 데이터 7z 압축 (GitHub의 무료 CPU를 100% 활용!)
 
-print("\n🗜️ 마스터 데이터 12종 7z 압축 시작... (이 작업은 수십 초 걸립니다)")
+print("\n 마스터 데이터 12종 7z 압축 시작... (이 작업은 수십 초 걸립니다)")
 # 'rawdata' 라는 이름으로 dl_master 폴더 안의 모든 파일을 7z로 압축합니다.
 subprocess.run(['7z', 'a', '-t7z', 'rawdata', './dl_master/*'], check=True)
 
 
-# 🚚 5. GitHub Releases (저장소)에 파일 배포하기
+# 5. GitHub Releases (저장소)에 파일 배포하기
 
-print("\n🚀 GitHub Releases 배포 시작...")
+print("\n GitHub Releases 배포 시작...")
 # 청크 파일들 용량(Byte)을 달아봅니다. (나중에 syncversion.txt에 적기 위함)
 db_size = os.path.getsize(f"dl_chunk/data-{timestamp}.db")
 json_size = os.path.getsize(f"dl_chunk/data-{timestamp}.json")
@@ -91,9 +91,9 @@ subprocess.run([
 ], check=True)
 
 
-# 📝 6. 장부(syncversion.txt) 업데이트
+# 6. 장부(syncversion.txt) 업데이트
 
-print("\n📝 장부(sync-data) 업데이트 시작...")
+print("\n 장부(sync-data) 업데이트 시작...")
 # 봇이 스스로 깃헙에 로그인하고 커밋할 수 있게 신분증을 설정합니다.
 subprocess.run(['git', 'config', '--global', 'user.name', 'violet-baker-bot'])
 subprocess.run(['git', 'config', '--global', 'user.email', 'bot@violet.local'])
@@ -119,12 +119,12 @@ subprocess.run(['git', '-C', 'sync-data', 'commit', '-m', f'sync: update syncver
 subprocess.run(['git', '-C', 'sync-data', 'push'])
 
 
-# 🧹 7. 구글 드라이브 청소 (다음번 헛스윙 방지)
+# 7. 구글 드라이브 청소 (다음번 헛스윙 방지)
 
-print("\n🧹 구글 드라이브 청소 중...")
+print("\n 구글 드라이브 청소 중...")
 # 배송이 끝난 파일들을 드라이브 휴지통에 넣지 않고 영구 삭제하여 용량을 비웁니다.
 for file_id in downloaded_drive_ids:
     try: drive.files().delete(fileId=file_id).execute()
     except: pass
 
-print(f"🏁 [완료] {timestamp} 버전 모든 클라우드 배송 및 장부 정리 완벽 종료!")
+print(f" [완료] {timestamp} 버전 모든 클라우드 배송 및 장부 정리 완벽 종료!")
