@@ -80,14 +80,14 @@ json_size = os.path.getsize(f"dl_chunk/data-{timestamp}.json")
 subprocess.run([
     'gh', 'release', 'create', timestamp, 
     f"dl_chunk/data-{timestamp}.db", f"dl_chunk/data-{timestamp}.json", 
-    '--repo', f"{GITHUB_USER}/chunk", '--title', timestamp, '--notes', "Auto-chunk"
+    '--repo', f"{GITHUB_USER}/chunk", '--title', f"chunk {timestamp}", '--notes', "Auto-chunk"
 ], check=True)
 
 # 'db' 저장소에 방금 압축한 마스터 'rawdata' 7z 파일을 릴리즈(업로드) 합니다.
 subprocess.run([
     'gh', 'release', 'create', timestamp, 
     'rawdata.7z', 
-    '--repo', f"{GITHUB_USER}/db", '--title', timestamp, '--notes', "Auto-master"
+    '--repo', f"{GITHUB_USER}/db", '--title', f"db {timestamp}", '--notes', "Auto-master"
 ], check=True)
 
 
