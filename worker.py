@@ -8,8 +8,8 @@ import io
 #  1. 환경 설정 
 
 GITHUB_USER = "lomo80"
-MASTER_FOLDER_ID = '1CCx9BUQnYaNJPguGkxfz5gd3FZwIjfYM' # 구글 드라이브 마스터 폴더
-CHUNK_FOLDER_ID = '1DqSaN11FTk1dJit27wMSiK_4LQCrnFHg'  # 구글 드라이브 청크 폴더
+MASTER_FOLDER_ID = os.environ.get('MASTER_FOLDER_ID')
+CHUNK_FOLDER_ID = os.environ.get('CHUNK_FOLDER_ID')
 
 print(" [GitHub Worker] 드라이브 순찰을 시작합니다...")
 
