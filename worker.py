@@ -66,7 +66,7 @@ download_folder_files(MASTER_FOLDER_ID, 'dl_master')
 
 print("\n 마스터 데이터 12종 7z 압축 시작... (이 작업은 수십 초 걸립니다)")
 # 'rawdata' 라는 이름으로 dl_master 폴더 안의 모든 파일을 7z로 압축합니다.
-subprocess.run(['7z', 'a', '-t7z', 'rawdata', './dl_master/*'], check=True)
+subprocess.run(['7z', 'a', '-t7z', 'rawdata.7z', './dl_master/*'], check=True)
 
 
 # 5. GitHub Releases (저장소)에 파일 배포하기
@@ -86,7 +86,7 @@ subprocess.run([
 # 'db' 저장소에 방금 압축한 마스터 'rawdata' 7z 파일을 릴리즈(업로드) 합니다.
 subprocess.run([
     'gh', 'release', 'create', timestamp, 
-    'rawdata', 
+    'rawdata.7z', 
     '--repo', f"{GITHUB_USER}/db", '--title', timestamp, '--notes', "Auto-master"
 ], check=True)
 
@@ -106,7 +106,7 @@ subprocess.run(['git', 'clone', f'https://x-access-token:{gh_token}@github.com/{
 lines = [
     f"chunk {timestamp} https://github.com/{GITHUB_USER}/chunk/releases/download/{timestamp}/data-{timestamp}.db {db_size}\n",
     f"chunk {timestamp} https://github.com/{GITHUB_USER}/chunk/releases/download/{timestamp}/data-{timestamp}.json {json_size}\n",
-    f"db {timestamp} https://github.com/{GITHUB_USER}/db/releases/download/{timestamp}/rawdata\n"
+    f"db {timestamp} https://github.com/{GITHUB_USER}/db/releases/download/{timestamp}/rawdata.7z\n"
 ]
 
 # syncversion.txt 맨 아래에 3줄을 덧붙입니다(Append).
