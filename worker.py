@@ -110,10 +110,13 @@ for ts in timestamps:
             # 찾은 건 메모리에서 지워서 다음 루프 때 또 뽑히지 않게 막습니다.
             master_files.remove(j_file) 
 
-    # [4] 7z 압축
+    # 🚀 [수정] 압축하기 전에 dl_master 폴더에 있는 data-{ts}.db 파일을 data.db로 이름을 바꿉니다!
+    os.rename(f"dl_master/data-{ts}.db", "dl_master/data.db")
+    
+    # [4] 7z 압축 (이제 안에는 항상 data.db라는 이름으로 들어갑니다!)
     print(f" {ts} 마스터 데이터 7z 압축 중...")
     subprocess.run(['7z', 'a', '-t7z', 'rawdata.7z', './dl_master/*'], check=True, stdout=subprocess.DEVNULL)
-
+    
     # [5] GitHub 릴리즈
     print(f"☁️ {ts} GitHub 릴리즈 업로드 중...")
     db_size = os.path.getsize(f"dl_chunk/data-{ts}.db")
